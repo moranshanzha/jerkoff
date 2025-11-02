@@ -2,12 +2,21 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import time
+import os
+
 from pygame.locals import *
+
+# 添加项目根目录到sys.path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, project_root)
 
 from config.settings import *
 from src.plane import OurPlane  # 导入我们的飞机
 from src.enemy import SmallEnemy
 from src.bullet import Bullet
+from src.score import ScoreSystem
+from src.menu import StartMenu, ScoreHistoryScreen
 
 
 bg_size = 480, 852  # 初始化游戏背景大小(宽, 高)
@@ -22,6 +31,9 @@ color_black = (0, 0, 0)
 color_green = (0, 255, 0)
 color_red = (255, 0, 0)
 color_white = (255, 255, 255)
+
+# 初始化得分系统
+score_system = ScoreSystem()
 
 # 获取我方飞机
 our_plane = OurPlane(bg_size)
@@ -41,12 +53,14 @@ def add_small_enemies(group1, group2, num):
         group2.add(small_enemy)
 
 
-def main():
+def game_loop():
+    """游戏主循环"""
     # 响应音乐
     pygame.mixer.music.play(-1)  # loops 接收该参数, -1 表示无限循环(默认循环播放一次)
     running = True
     switch_image = False  # 切换飞机的标识位(使飞机具有喷气式效果)
     delay = 60  # 对一些效果进行延迟, 效果更好一些
+    start_time = time.time()  # 记录游戏开始时间
 
     enemies = pygame.sprite.Group()  # 生成敌方飞机组(一种精灵组用以存储所有敌机精灵)
     small_enemies = pygame.sprite.Group()  # 敌方小型飞机组(不同型号敌机创建不同的精灵组来存储)
@@ -57,12 +71,17 @@ def main():
     bullet_index = 0
     e1_destroy_index = 0
     me_destroy_index = 0
+    score_font = pygame.font.Font(None, 36)  # 得分显示字体
+    high_score_font = pygame.font.Font(None, 24)  # 最高分显示字体
 
     # 定义子弹实例化个数
     bullet1 = []
     bullet_num = 6
     for i in range(bullet_num):
         bullet1.append(Bullet(our_plane.rect.midtop))
+    
+    # 重置得分系统
+    score_system.reset_score()
 
     while running:
 
@@ -127,6 +146,7 @@ def main():
                         b.active = False  # 子弹损毁
                         for e in enemies_hit:
                             e.active = False  # 小型敌机损毁
+                            score_system.add_score("small")  # 添加得分
 
         # 毁坏状态绘制爆炸的场面
         else:
@@ -135,7 +155,8 @@ def main():
                 me_destroy_index = (me_destroy_index + 1) % 4
                 if me_destroy_index == 0:
                     me_down_sound.play()
-                    our_plane.reset()
+                    score_system.save_score()  # 保存得分
+                    return  # 游戏结束，返回主菜单
 
         # 调用 pygame 实现的碰撞方法 spritecollide (我方飞机如果和敌机碰撞, 更改飞机的存活属性)
         enemies_down = pygame.sprite.spritecollide(our_plane, enemies, False, pygame.sprite.collide_mask)
@@ -147,8 +168,7 @@ def main():
         # 响应用户的操作
         for event in pygame.event.get():
             if event.type == 12:  # 如果用户按下屏幕上的关闭按钮，触发QUIT事件，程序退出
-                pygame.quit()
-                sys.exit()
+                return "quit"
 
         if delay == 0:
             delay = 60
@@ -165,8 +185,55 @@ def main():
         if key_pressed[K_d] or key_pressed[K_RIGHT]:
             our_plane.move_right()
 
+        # 显示得分
+        score_text = score_font.render(f"Score: {score_system.score}", True, color_white)
+        screen.blit(score_text, (10, 10))
+        
+        # 显示最高分
+        high_score_text = high_score_font.render(f"High Score: {score_system.high_score}", True, color_white)
+        screen.blit(high_score_text, (10, 50))
+
         # 绘制图像并输出到屏幕上面
         pygame.display.flip()
+    return "quit"
+
+def main():
+    """游戏主入口"""
+    running = True
+    current_screen = "start_menu"
+    
+    # 创建开始菜单和得分历史屏幕
+    start_menu = StartMenu(screen, score_system)
+    score_history = ScoreHistoryScreen(screen, score_system)
+    
+    while running:
+        if current_screen == "start_menu":
+            result = start_menu.run()
+            if result == "start_game":
+                # 重置飞机状态
+                our_plane.reset()
+                # 开始游戏循环
+                game_result = game_loop()
+                if game_result == "quit":
+                    running = False
+                else:
+                    current_screen = "start_menu"
+            elif result == "show_history":
+                current_screen = "score_history"
+            elif result == "quit":
+                running = False
+        elif current_screen == "score_history":
+            result = score_history.run()
+            if result == "back":
+                current_screen = "start_menu"
+            elif result == "quit":
+                running = False
+    
+    # 清理资源
+    score_system.save_score()
+    score_system.close()
+    pygame.quit()
+    sys.exit()
 
 
 

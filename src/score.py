@@ -17,16 +17,21 @@ class ScoreSystem:
         self.score = 0
         self.high_score = self.load_high_score()
         self.api_url = "http://localhost:8080/api/scores"  # SpringBoot后端API地址
+        self.score_multiplier = 1
     
     def add_score(self, enemy_type):
         """根据敌机类型添加得分"""
+        base_score = 0
         if enemy_type == "small":
-            self.score += 10
+            base_score = 10
         elif enemy_type == "mid":
-            self.score += 50
+            base_score = 50
         elif enemy_type == "big":
-            self.score += 100
+            base_score = 100
             
+        # 应用得分加倍效果
+        self.score += base_score * self.score_multiplier
+        
         # 更新最高分
         if self.score > self.high_score:
             self.high_score = self.score

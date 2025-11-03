@@ -44,12 +44,6 @@ class OurPlane(pygame.sprite.Sprite):
                 pygame.image.load(os.path.join(BASE_DIR, "material/image/hero_blowup_n4.png")),
             ]
         )
-        # 飞机生命值
-        self.max_health = 3
-        self.health = self.max_health
-        # 无敌状态
-        self.invincible = False
-        self.invincible_time = 0
 
     def move_up(self):
         """
@@ -92,33 +86,6 @@ class OurPlane(pygame.sprite.Sprite):
         self.rect.left, self.rect.top = (self.width - self.rect.width) // 2, (self.height - self.rect.height - 60)
         # 重置飞机的存活状态
         self.active = True
-        # 重置生命值
-        self.health = self.max_health
-        # 设置无敌状态
-        self.invincible = True
-        self.invincible_time = 120  # 2秒无敌时间
-        
-    def update(self):
-        """更新飞机状态"""
-        # 处理无敌状态
-        if self.invincible:
-            self.invincible_time -= 1
-            if self.invincible_time <= 0:
-                self.invincible = False
-                
-    def take_damage(self, damage=1):
-        """处理飞机受伤"""
-        if not self.invincible and self.active:
-            self.health -= damage
-            if self.health <= 0:
-                self.active = False
-                return False
-            else:
-                # 受伤后短暂无敌
-                self.invincible = True
-                self.invincible_time = 60  # 1秒无敌时间
-                return True
-        return False
 
 
 

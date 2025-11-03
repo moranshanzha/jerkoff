@@ -1,57 +1,74 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify
-from flask_login import login_required, current_user
-from app import db
-from app.models import User, Journal, Resource
-from datetime import datetime
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from backend.app.core.config import settings
+from backend.app.core.database import init_db, close_db, register_database
+from backend.app.api.v1 import api_router
+from contextlib import asynccontextmanager
 
-bp = Blueprint('main', __name__)
 
-@bp.route('/')
-def index():
-    if current_user.is_authenticated:
-        return redirect(url_for('main.dashboard'))
-    return redirect(url_for('auth.login'))
+# 应用生命周期管理
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # 启动时初始化
+    await init_db()
+    yield
+    # 关闭时清理
+    await close_db()
 
-@bp.route('/dashboard')
-@login_required
-def dashboard():
-    # 获取用户的最新日志和资源
-    latest_journals = Journal.query.filter_by(user_id=current_user.id).order_by(Journal.created_at.desc()).limit(5).all()
-    latest_resources = Resource.query.filter_by(user_id=current_user.id).order_by(Resource.uploaded_at.desc()).limit(5).all()
-    
-    return render_template('main/dashboard.html', latest_journals=latest_journals, latest_resources=latest_resources)
 
-@bp.route('/profile')
-@login_required
-def profile():
-    return render_template('main/profile.html')
+# 创建FastAPI应用
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version=settings.PROJECT_VERSION,
+    description="飞机游戏后端框架 API文档",
+    lifespan=lifespan
+)
 
-@bp.route('/profile/update', methods=['POST'])
-@login_required
-def update_profile():
-    data = request.form
-    username = data.get('username')
-    email = data.get('email')
-    
-    if not username or not email:
-        flash('请填写所有必填字段', 'danger')
-        return redirect(url_for('main.profile'))
-        
-    # 检查用户名是否已被使用
-    existing_user = User.query.filter_by(username=username).first()
-    if existing_user and existing_user.id != current_user.id:
-        flash('该用户名已被使用', 'danger')
-        return redirect(url_for('main.profile'))
-        
-    # 检查邮箱是否已被使用
-    existing_email = User.query.filter_by(email=email).first()
-    if existing_email and existing_email.id != current_user.id:
-        flash('该邮箱已被注册', 'danger')
-        return redirect(url_for('main.profile'))
-        
-    current_user.username = username
-    current_user.email = email
-    db.session.commit()
-    
-    flash('个人资料已更新', 'success')
-    return redirect(url_for('main.profile'))
+
+# 配置CORS
+if settings.BACKEND_CORS_ORIGINS:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.BACKEND_CORS_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+
+# 注册数据库
+register_database(app)
+
+
+# 注册API路由
+app.include_router(api_router, prefix=settings.API_V1_STR)
+
+
+# 根路径
+@app.get("/")
+async def root():
+    return {"message": "欢迎使用飞机游戏后端框架", "version": settings.PROJECT_VERSION}
+
+
+# 全局异常处理
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"code": exc.status_code, "message": exc.detail}
+    )
+
+
+# 通用异常处理
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"code": 500, "message": "服务器内部错误"}
+    )
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")

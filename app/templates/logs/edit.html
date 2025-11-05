@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3>编辑日志</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.title.label(class="form-label") }}
+                        {% if form.title.errors %}
+                            {{ form.title(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.title.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.title(class="form-control") }}
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.content.label(class="form-label") }}
+                        {% if form.content.errors %}
+                            {{ form.content(class="form-control is-invalid", rows=8) }}
+                            <div class="invalid-feedback">
+                                {% for error in form.content.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.content(class="form-control", rows=8) }}
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.tags.label(class="form-label") }}
+                        {% if form.tags.errors %}
+                            {{ form.tags(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.tags.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.tags(class="form-control") }}
+                            <div class="form-text">使用逗号分隔多个标签</div>
+                        {% endif %}
+                    </div>
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary btn-block") }}
+                        <a href="{{ url_for('logs.view_log', log_id=log.id) }}" class="btn btn-outline-secondary btn-block">取消</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

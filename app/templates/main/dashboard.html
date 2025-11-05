@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h3>欢迎回来，{{ current_user.username }}！</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card bg-primary text-white mb-4">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="card-title">日志数量</h5>
+                                        <p class="card-text h2">{{ current_user.logs.count() }}</p>
+                                    </div>
+                                    <div class="display-4">📝</div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-transparent border-primary">
+                                <a href="{{ url_for('logs.index') }}" class="text-white stretched-link">查看所有日志</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white mb-4">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="card-title">资源数量</h5>
+                                        <p class="card-text h2">{{ current_user.resources.count() }}</p>
+                                    </div>
+                                    <div class="display-4">📦</div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-transparent border-success">
+                                <a href="{{ url_for('resources.index') }}" class="text-white stretched-link">管理资源</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-info text-white mb-4">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="card-title">账号状态</h5>
+                                        <p class="card-text h2">
+                                            {% if current_user.is_verified %}
+                                                ✅ 已验证
+                                            {% else %}
+                                                ❌ 未验证
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                    <div class="display-4">👤</div>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-transparent border-info">
+                                <a href="{{ url_for('auth.logout') }}" class="text-white stretched-link">退出登录</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>最近的日志</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if current_user.logs.count() > 0 %}
+                                    <ul class="list-group list-group-flush">
+                                        {% for log in current_user.logs.order_by(log.created_at.desc()).limit(5) %}
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <a href="{{ url_for('logs.view_log', log_id=log.id) }}" class="text-decoration-none">
+                                                    {{ log.title }}
+                                                </a>
+                                                <span class="text-muted small">
+                                                    {{ log.created_at.strftime('%Y-%m-%d') }}
+                                                </span>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                    <div class="mt-3">
+                                        <a href="{{ url_for('logs.index') }}" class="btn btn-outline-primary btn-sm">查看全部</a>
+                                    </div>
+                                {% else %}
+                                    <div class="text-center py-3">
+                                        <p class="text-muted">还没有日志记录</p>
+                                        <a href="{{ url_for('logs.create_log') }}" class="btn btn-primary btn-sm">创建日志</a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>最近的资源</h5>
+                            </div>
+                            <div class="card-body">
+                                {% if current_user.resources.count() > 0 %}
+                                    <ul class="list-group list-group-flush">
+                                        {% for resource in current_user.resources.order_by(resource.created_at.desc()).limit(5) %}
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <a href="{{ url_for('resources.preview_resource', resource_id=resource.id) }}" class="text-decoration-none">
+                                                    {{ resource.original_filename }}
+                                                </a>
+                                                <span class="badge bg-secondary">
+                                                    {{ '皮肤' if resource.file_type == 'skin' else '模型' }}
+                                                </span>
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                    <div class="mt-3">
+                                        <a href="{{ url_for('resources.index') }}" class="btn btn-outline-primary btn-sm">查看全部</a>
+                                    </div>
+                                {% else %}
+                                    <div class="text-center py-3">
+                                        <p class="text-muted">还没有上传资源</p>
+                                        <a href="{{ url_for('resources.upload_resource') }}" class="btn btn-primary btn-sm">上传资源</a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

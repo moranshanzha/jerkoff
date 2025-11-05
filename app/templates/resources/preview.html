@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3>资源预览</h3>
+                <a href="{{ url_for('resources.index') }}" class="btn btn-sm btn-outline-secondary">返回列表</a>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <h5>{{ resource.original_filename }}</h5>
+                    <p class="text-muted">
+                        类型: {{ '皮肤' if resource.file_type == 'skin' else '模型' }}<br>
+                        大小: {{ (resource.size / 1024 / 1024)|round(2) }} MB<br>
+                        上传于: {{ resource.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    </p>
+                    {% if resource.description %}
+                        <div class="mt-2">
+                            <h6>描述:</h6>
+                            <p>{{ resource.description }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="border p-4 rounded text-center">
+                    {% if resource.file_type == 'skin' and resource.file_extension in ['png', 'jpg', 'jpeg', 'gif'] %}
+                        <img src="{{ url_for('resources.uploaded_file', filename=resource.filename) }}" 
+                             alt="资源预览" 
+                             class="img-fluid rounded" 
+                             style="max-height: 400px;">
+                    {% elif resource.file_type == 'model' %}
+                        <div class="p-5">
+                            <h4>3D模型预览</h4>
+                            <p class="text-muted">
+                                支持的模型格式：OBJ, FBX<br>
+                                当前仅显示文件信息，完整的3D预览功能需要额外的前端库支持
+                            </p>
+                            <a href="{{ url_for('resources.uploaded_file', filename=resource.filename) }}" 
+                               class="btn btn-primary" 
+                               download="{{ resource.original_filename }}">
+                                下载模型文件
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="p-5">
+                            <h4>不支持的文件类型</h4>
+                            <p class="text-muted">无法预览此类型的文件</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="mt-4">
+                    <div class="d-grid gap-2">
+                        {% if not resource.is_active %}
+                            <form method="post" action="{{ url_for('resources.activate_resource', resource_id=resource.id) }}">
+                                <button type="submit" class="btn btn-success btn-block">激活此{{ '皮肤' if resource.file_type == 'skin' else '模型' }}</button>
+                            </form>
+                        {% else %}
+                            <button type="button" class="btn btn-success btn-block" disabled>已激活</button>
+                        {% endif %}
+                        <a href="{{ url_for('resources.uploaded_file', filename=resource.filename) }}" 
+                           class="btn btn-outline-primary btn-block" 
+                           download="{{ resource.original_filename }}">
+                            下载文件
+                        </a>
+                        <form method="post" action="{{ url_for('resources.delete_resource', resource_id=resource.id) }}">
+                            <button type="submit" class="btn btn-danger btn-block" onclick="return confirm('确定要删除此资源吗？')">删除资源</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

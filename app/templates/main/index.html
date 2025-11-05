@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8">
+        <div class="card text-center">
+            <div class="card-body">
+                <h1 class="card-title mb-4">欢迎使用项目管理系统</h1>
+                <p class="card-text lead">
+                    这是一个功能强大的项目管理平台，包含用户认证、日志管理和资源管理等功能。
+                </p>
+                <div class="row mt-5">
+                    <div class="col-md-4">
+                        <div class="card bg-primary text-white mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">用户认证</h5>
+                                <p class="card-text">安全的用户注册、登录和密码重置功能</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">日志管理</h5>
+                                <p class="card-text">创建、查看和管理您的个人日志</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-info text-white mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">资源管理</h5>
+                                <p class="card-text">上传和管理个性化皮肤及模型</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-5">
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg me-3">立即注册</a>
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg">登录</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

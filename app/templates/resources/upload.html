@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3>上传资源</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.file.label(class="form-label") }}
+                        {% if form.file.errors %}
+                            {{ form.file(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.file.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.file(class="form-control") }}
+                            <div class="form-text">允许上传的文件类型：png, jpg, jpeg, gif, obj, fbx (最大16MB)</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.file_type.label(class="form-label") }}
+                        {% if form.file_type.errors %}
+                            {{ form.file_type(class="form-select is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.file_type.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.file_type(class="form-select") }}
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {% if form.description.errors %}
+                            {{ form.description(class="form-control is-invalid", rows=3) }}
+                            <div class="invalid-feedback">
+                                {% for error in form.description.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.description(class="form-control", rows=3) }}
+                        {% endif %}
+                    </div>
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary btn-block") }}
+                        <a href="{{ url_for('resources.index') }}" class="btn btn-outline-secondary btn-block">取消</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
